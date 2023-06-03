@@ -1,7 +1,7 @@
 # 视图函数
-from pythology import app
+from flask import current_app
 
 
-@app.route('/login')
+@current_app.route('/login')
 def index():
     return "Hello Flask"
