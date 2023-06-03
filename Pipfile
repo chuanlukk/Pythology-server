@@ -8,6 +8,7 @@ flask = "*"
 python-dotenv = "*"
 flask-sqlalchemy = "*"
 mysqlclient = "*"
+flask-migrate = "*"
 
 [dev-packages]
 watchdog = "*"
