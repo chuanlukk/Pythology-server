@@ -7,8 +7,11 @@ import click
 
 from flask import Flask
 from .blueprints.test import test_bp
+from .blueprints.auth import auth_bp
 from .config import config
 from .extensions import db
+from .models import Student, Admin, Course
+
 
 
 # 工厂函数接收配置名作为参数，返回创建的程序实例
@@ -40,6 +43,7 @@ def register_extensions(app):
 
 def register_blueprints(app):
     app.register_blueprint(test_bp)
+    app.register_blueprint(auth_bp)
 
 
 # 自定义flask命令
@@ -65,9 +69,10 @@ def register_errors(app):
 
 
 def register_shell_context(app):
+    # 将db对象集成到Python shell上下文中
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db)
+        return dict(db=db, Student=Student, Admin=Admin, Course=Course, CourseStudent=CourseStudent)
 
 
 # 为了让使用程序实例app注册的视图函数，错误处理函数，自定义命令函数等和程序实例关联起来

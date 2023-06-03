@@ -24,7 +24,7 @@ class BaseConfig(object):
 
 class DevelopmentConfig(BaseConfig):
     # SQLAlchemy 数据库的 URI，指定了应用程序将连接的数据库的位置和类型
-    SQLALCHEMY_DATABASE_URI = prefix + os.path.join(basedir, 'data-dev.db')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', prefix + os.path.join(basedir, 'data-dev.db'))
 
 
 class TestingConfig(BaseConfig):

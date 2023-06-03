@@ -1,16 +1,16 @@
 # 数据库模型
 # from datetime import datetime
-from pythology import db
+from .extensions import db
 
-class User(db.Model):
+association_table = db.Table('association',
+    db.Column('student_id', db.Integer, db.ForeignKey('student.id')),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id')))
+
+
+class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    password = db.Column(db.Text)
-    admin = db.Column(db.Boolean, default=False)
-    name = db.Column(db.String(20))
-    gender = db.Column(db.String(1)) # M or F
-    school = db.Column(db.String(20))
-    major = db.Column(db.String(25))
-    enrollment_date = db.Column(db.Integer)
+    username = db.Column(db.String(20))
+    password_hash = db.Column(db.String(128))
 
 
 class Student(db.Model):
@@ -21,12 +21,9 @@ class Student(db.Model):
     school = db.Column(db.String(20))
     major = db.Column(db.String(25))
     enrollment_date = db.Column(db.Integer)
-
-
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20))
-    password_hash = db.Column(db.String(128))
+    courses = db.relationship('Course',
+                              secondary=association_table,
+                              back_populates='students')
 
 
 class Course(db.Model):
@@ -41,16 +38,8 @@ class Course(db.Model):
     school = db.Column(db.String(20))
     major = db.Column(db.String(25))
     grade = db.Column(db.Integer)
-    # 课程和学生是多对多的关系，课程和学生的关系由course_student表来维护
-    students = db.relationship('Student', secondary='course_student', back_populates='courses')
+    students = db.relationship('Student',
+                                secondary=association_table,
+                                back_populates='courses')
 
-
-class CourseStudent(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
-    grade = db.Column(db.Integer)
-    # 课程和学生是多对多的关系，课程和学生的关系由course_student表来维护
-    course = db.relationship('Course', back_populates='students')
-    student = db.relationship('Student', back_populates='courses')
 
