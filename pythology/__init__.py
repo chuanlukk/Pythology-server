@@ -3,6 +3,7 @@
 # 包让我们使用文件夹来组织模块（.py文件）
 # 当包或包内的模块被导入时，构造文件会被自动执行
 import os
+import click
 
 from flask import Flask
 from .blueprints.test import test_bp
@@ -41,8 +42,22 @@ def register_blueprints(app):
     app.register_blueprint(test_bp)
 
 
+# 自定义flask命令
+# 当我们安装Flask后，会自动添加一个flask命令脚本，
+# 我们可以通过flask命令执行内置命令、拓展提供的命令或是我们自己定义的命令
 def register_commands(app):
-    pass
+    @app.cli.command()
+    @click.option('--drop', is_flag=True, help='Create after drop.')
+    def initdb(drop):
+        """Initialize the database."""
+        if drop:
+            click.confirm('This operation will delete the database, do you want to continue?', abort=True)
+            db.drop_all()
+            click.echo('Drop tables.')
+        db.create_all()
+        click.echo('Initialized database.')
+
+
 
 
 def register_errors(app):
@@ -59,4 +74,4 @@ def register_shell_context(app):
 # 我们需要在构造文件中导入这些模块。
 # 因为这些模块也需要从构造文件中导入程序实例，
 # 所以为了避免循环依赖，这些导入语句在构造文件的末尾定义。
-from pythology import views, errors, commands
+from pythology import errors
