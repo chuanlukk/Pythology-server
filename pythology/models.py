@@ -1,10 +1,10 @@
 # 数据库模型
-# from datetime import datetime
+
 from .extensions import db
 
 association_table = db.Table('association',
-    db.Column('student_id', db.Integer, db.ForeignKey('student.id')),
-    db.Column('course_id', db.Integer, db.ForeignKey('course.id')))
+    db.Column('student_id', db.String(10), db.ForeignKey('student.id')),
+    db.Column('course_id', db.String(10), db.ForeignKey('course.id')))
 
 
 class Admin(db.Model):
