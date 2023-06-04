@@ -13,11 +13,11 @@ def register():
     res = {}
     model_class = Admin if data['admin'] else Student
     existing_user = model_class.query.get(data['id'])
-    new_user = None
-
     print('existing_user:', existing_user)
+
+    new_user = None
     if existing_user:
-        res['msg'] = "existed"
+        res['msg'] = "用户已存在"
         res['status'] = 0
     else:
         print('model_class:', model_class)
@@ -25,7 +25,8 @@ def register():
             new_user = Admin(
                 id=data['id'],
                 username=data['username'],
-                password_hash=data['password']
+                password_hash=data['password'],
+                school=data['school']
             )
         else:
             new_user = Student(
@@ -41,7 +42,7 @@ def register():
         if new_user:
             db.session.add(new_user)
             db.session.commit()
-            res['msg'] = "success"
+            res['msg'] = "注册成功"
             res['status'] = 1
 
     print('send res:', res)
@@ -56,23 +57,19 @@ def login():
     res = {}
     model_class = Admin if data['admin'] else Student
     user = model_class.query.get(data['id'])
-
     print('user:', user)
+
     if user:
         if user.password_hash == data['password']:
-            # 如果是学生，顺带返回学生的课程信息
-            if not data['admin']:
-                courses = user.courses
-                res['courses'] = courses
-            res['msg'] = "success"
+            res['course'] = [course.to_dict() for course in user.courses]
+            res['msg'] = "登录成功"
             res['status'] = 1
         else:
-            res['msg'] = "wrong password"
+            res['msg'] = "学工号或密码错误"
             res['status'] = 0
     else:
-        res['msg'] = "not existed"
+        res['msg'] = "用户不存在，请检查学工号是否正确"
         res['status'] = 0
 
     print('send res:', res)
-    response = make_response(jsonify(res))
-    return response
+    return jsonify(res)
