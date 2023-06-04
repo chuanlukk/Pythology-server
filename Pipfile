@@ -9,6 +9,7 @@ python-dotenv = "*"
 flask-sqlalchemy = "*"
 mysqlclient = "*"
 flask-migrate = "*"
+gunicorn = "*"
 
 [dev-packages]
 watchdog = "*"
