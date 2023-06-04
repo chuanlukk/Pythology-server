@@ -8,13 +8,13 @@ association_table = db.Table('association',
 
 
 class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True)
     username = db.Column(db.String(20))
     password_hash = db.Column(db.String(128))
 
 
 class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True)
     username = db.Column(db.String(20))
     password_hash = db.Column(db.String(128))
     gender = db.Column(db.String(1)) # M or F
