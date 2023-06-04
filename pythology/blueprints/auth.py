@@ -1,15 +1,8 @@
-from flask import Blueprint, request, jsonify, make_response, g
+from flask import Blueprint, request, jsonify, make_response
 from pythology.extensions import db
 from pythology.models import Student, Admin, Course
 
 auth_bp = Blueprint('auth', __name__)
-
-
-@auth_bp.before_app_request
-def before_request():
-    g.id = request.args.get('id')
-    g.admin = request.args.get('admin')
-
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -67,12 +60,12 @@ def login():
     print('user:', user)
     if user:
         if user.password_hash == data['password']:
+            # 如果是学生，顺带返回学生的课程信息
             if not data['admin']:
                 courses = user.courses
-                print('courses:', courses)
+                res['courses'] = courses
             res['msg'] = "success"
             res['status'] = 1
-            res['courses'] = []
         else:
             res['msg'] = "wrong password"
             res['status'] = 0
@@ -83,7 +76,3 @@ def login():
     print('send res:', res)
     response = make_response(jsonify(res))
     return response
-
-
-
-

@@ -4,15 +4,17 @@
 # 当包或包内的模块被导入时，构造文件会被自动执行
 import os
 import click
+import logging
+from logging.handlers import RotatingFileHandler, SMTPHandler
 
-from flask import Flask
+from flask import Flask, request
 from .blueprints.test import test_bp
 from .blueprints.auth import auth_bp
 from .config import config
 from .extensions import db
 from .models import Student, Admin, Course
 
-
+basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 # 工厂函数接收配置名作为参数，返回创建的程序实例
 # 工厂函数一般在程序包的构造文件中定义，
@@ -34,7 +36,35 @@ def create_app(config_name=None):
 
 
 def register_logging(app):
-    pass
+    class RequestFormatter(logging.Formatter):
+        def format(self, record):
+            record.url = request.url
+            record.remote_addr = request.remote_addr
+            return super().format(record)
+
+    request_formatter = RequestFormatter(
+        '[%(asctime)s] %(remote_addr)s requested %(url)s\n'
+        '%(levelname)s in %(module)s: %(message)s'
+    )
+
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]'
+    )
+    file_handler = RotatingFileHandler(os.path.join(basedir, 'logs/pythology.log'),
+                                       maxBytes=10 * 1024 * 1024,
+                                       backupCount=10)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+
+    # mail_handler = SMTPHandler(
+
+
+    # FLASK_ENV = development时，app.debug = True
+    # FLASK_ENV = production时，app.debug = False
+    if not app.debug:
+        app.logger.addHandler(file_handler)
+
 
 
 def register_extensions(app):
@@ -42,8 +72,8 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    app.register_blueprint(test_bp)
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(test_bp, url_prefix='/test')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
 
 
 # 自定义flask命令
