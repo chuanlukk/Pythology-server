@@ -27,7 +27,7 @@ class Student(db.Model):
 
 
 class Course(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(20))
     teacher = db.Column(db.String(20))
     credit = db.Column(db.Integer)
