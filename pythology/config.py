@@ -34,7 +34,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     # 如果环境变量中没有设置数据库 URI，则默认使用 dev_db 变量中定义的数据库 URI。
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', prefix + os.path.join(basedir, 'data.db'))
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', prefix + os.path.join(basedir, 'data.db'))
 
 
 config = {
