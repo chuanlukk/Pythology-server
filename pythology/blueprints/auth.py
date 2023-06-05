@@ -67,6 +67,8 @@ def login():
             res['school'] = user.school
             res['id'] = user.id
             res['status'] = 1
+            if not data['admin']:
+                res['major'] = user.major
         else:
             res['msg'] = "学工号或密码错误"
             res['status'] = 0
