@@ -1,19 +1,13 @@
 # 虚拟数据生成模块
+import random
+
 from faker import Faker
-from .extensions import db
-from .models import Student, Admin, Course, CourseStudent
+from sqlalchemy.exc import IntegrityError
 
-fake = Faker('zh_CN')
+from pythology.extensions import db
+from pythology.models import Admin, Student, Course, Classroom
+
+fake = Faker(locale='zh_CN')
 
 
-def fake_student(count=20):
-    for i in range(count):
-        student = Student(
-            id = i+1,
-            username=fake.name(),
-        )
-        db.session.add(student)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+

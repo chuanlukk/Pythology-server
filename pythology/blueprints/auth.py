@@ -36,7 +36,7 @@ def register():
                 gender=data['gender'],
                 school=data['school'],
                 major=data['major'],
-                enrollment_date=data['enrollment_date']
+                grade=data['enrollment_date']
             )
 
         if new_user:
@@ -57,12 +57,15 @@ def login():
     res = {}
     model_class = Admin if data['admin'] else Student
     user = model_class.query.get(data['id'])
-    print('user:', user)
-
+    # 判断用户是否存在
     if user:
+        # 判断密码是否正确
         if user.password_hash == data['password']:
             res['course'] = [course.to_dict() for course in user.courses]
             res['msg'] = "登录成功"
+            res['username'] = user.username
+            res['school'] = user.school
+            res['id'] = user.id
             res['status'] = 1
         else:
             res['msg'] = "学工号或密码错误"
