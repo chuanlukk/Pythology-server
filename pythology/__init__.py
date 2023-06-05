@@ -10,9 +10,11 @@ from logging.handlers import RotatingFileHandler, SMTPHandler
 from flask import Flask, request
 from .blueprints.test import test_bp
 from .blueprints.auth import auth_bp
+from .blueprints.admin import admin_bp
+from .blueprints.student import student_bp
 from .config import config
 from .extensions import db
-from .models import Student, Admin, Course
+from .models import Student, Admin, Course, association_table
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -57,11 +59,6 @@ def register_logging(app):
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
 
-    # mail_handler = SMTPHandler(
-
-
-    # FLASK_ENV = development时，app.debug = True
-    # FLASK_ENV = production时，app.debug = False
     if not app.debug:
         app.logger.addHandler(file_handler)
 
@@ -74,6 +71,8 @@ def register_extensions(app):
 def register_blueprints(app):
     app.register_blueprint(test_bp, url_prefix='/test')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(student_bp, url_prefix='/student')
 
 
 # 自定义flask命令
