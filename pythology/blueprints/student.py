@@ -23,12 +23,12 @@ def add_course():
     print('course:', course)
     if course:
         # 判断是否已选过相同课程
-        if g.user.courses.filter_by(name=course.name).first():
+        if any(c.name == course.name for c in g.user.courses):
             res['msg'] = "您已选过相同课程"
             res['status'] = 0
         else:
             # 判断是否与已选课程产生时间冲突
-            time_conflict = g.user.courses.filter(Course.week==course.week, Course.start<course.end, Course.end>course.start).first()
+            time_conflict = any(c.week == course.week and c.start < course.end and c.end > course.start for c in g.user.courses)
             if time_conflict:
                 res['msg'] = "与已选课程产生时间冲突"
                 res['status'] = 0
@@ -51,7 +51,7 @@ def remove_course():
     print('receive data:', data)
 
     res = {}
-    course = g.user.courses.query.get(data['course_id'])
+    course = next((c for c in g.user.courses if c.id == data['course_id']), None)
     print('course:', course)
     if course:
         g.user.courses.remove(course)

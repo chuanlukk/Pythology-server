@@ -36,7 +36,7 @@ def register():
                 gender=data['gender'],
                 school=data['school'],
                 major=data['major'],
-                grade=data['enrollment_date']
+                grade=data['grade']
             )
 
         if new_user:
