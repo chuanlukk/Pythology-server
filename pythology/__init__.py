@@ -38,28 +38,30 @@ def create_app(config_name=None):
 
 
 def register_logging(app):
+    # 为了让日志记录器记录最低级别为INFO的日志
+    # 首先将app.logger的日志级别设置为INFO
+    app.logger.setLevel(logging.INFO)
     class RequestFormatter(logging.Formatter):
         def format(self, record):
             record.url = request.url
             record.remote_addr = request.remote_addr
             return super().format(record)
 
-    request_formatter = RequestFormatter(
-        '[%(asctime)s] %(remote_addr)s requested %(url)s\n'
-        '%(levelname)s in %(module)s: %(message)s'
-    )
-
+    # 设置日志输出格式
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]'
     )
+    # 创建轮转文件类型的日志处理器
     file_handler = RotatingFileHandler(os.path.join(basedir, 'logs/pythology.log'),
                                        maxBytes=10 * 1024 * 1024,
                                        backupCount=10)
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
 
+    #app.debug属性存储用来判断程序是否开启了调试模式的布尔值
     if not app.debug:
+        # 对app.logger调用addHandler()方法将处理器注册到logger对象中
         app.logger.addHandler(file_handler)
 
 
