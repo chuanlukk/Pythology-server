@@ -79,10 +79,11 @@ def get_courses():
         res['courses'] = [course.to_dict() for course in courses]
         # 标记已选课程
         for course in res['courses']:
-            course['selected'] = 1 if g.user.courses.filter_by(id=course['id']).first() else 0
+            # course['selected'] = 1 if g.user.courses.filter_by(id=course['id']).first() else 0
+            course['selected'] = 1 if any(c.id == course['id'] for c in g.user.courses) else 0
         # 标记时间冲突课程
         for course in res['courses']:
-            course['time_conflict'] = 1 if g.user.courses.filter(Course.week==course['week'], Course.start<course['end'], Course.end>course['start']).first() else 0
+            course['time_conflict'] = 1 if any(course['week'] == c.week and course['start'] < c.end and course['end'] > c.start for c in g.user.courses) else 0
         res['msg'] = "获取可选课程成功"
     else:
         res['status'] = 0

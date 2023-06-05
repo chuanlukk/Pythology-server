@@ -50,5 +50,22 @@ class Course(db.Model):
     students = db.relationship('Student',
                                 secondary=association_table,
                                 back_populates='courses')
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'school': self.school,
+            'major': self.major,
+            'grade': self.grade,
+            'name': self.name,
+            'teacher': self.teacher,
+            'credit': self.credit,
+            'week': self.week,
+            'start': self.start,
+            'end': self.end,
+            'description': self.description,
+            'admin_id': self.admin_id,
+            'classroom': self.classroom_id,
+            # 添加其他属性
+        }
 
 

@@ -109,7 +109,6 @@ def register_commands(app):
             click.echo('Creating the temporary administrator account...')
             admin = Admin(id = id, username='Admin', password_hash=password, school=1)
             db.session.add(admin)
-
         db.session.commit()
         click.echo('Done.')
 
