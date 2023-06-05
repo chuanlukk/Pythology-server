@@ -92,6 +92,27 @@ def register_commands(app):
         db.create_all()
         click.echo('Initialized database.')
 
+    @app.cli.command()
+    @click.option('--id', default='111', prompt=True, help='The username used to login.')
+    @click.option('--password', default='111', prompt=True, hide_input=True, confirmation_prompt=True, help='The password used to login.')
+    def init(id, password):
+        """Building pythology, just for fun."""
+        click.echo('Initializing the database...')
+        db.create_all()
+
+        admin = Admin.query.filter('username' == 'Admin').first()
+        if admin is not None:
+            click.echo('The administrator already exists, updating...')
+            admin.id = id
+            admin.password_hash = password
+        else:
+            click.echo('Creating the temporary administrator account...')
+            admin = Admin(id = id, username='Admin', password_hash=password, school=1)
+            db.session.add(admin)
+
+        db.session.commit()
+        click.echo('Done.')
+
 
 
 
