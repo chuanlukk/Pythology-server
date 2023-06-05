@@ -14,6 +14,12 @@ class Admin(db.Model):
     courses = db.relationship('Course', backref='admin', lazy='select')
 
 
+class Classroom(db.Model):
+    id = db.Column(db.String(10), primary_key=True) # 4-312
+    capacity = db.Column(db.Integer)
+    courses = db.relationship('Course', backref='classroom', lazy='select')
+
+
 class Student(db.Model):
     id = db.Column(db.String(10), primary_key=True)
     username = db.Column(db.String(20))
@@ -37,10 +43,10 @@ class Course(db.Model):
     credit = db.Column(db.Integer)
     week = db.Column(db.Integer)
     start = db.Column(db.Integer)
-    classroom = db.Column(db.String(20))
     end = db.Column(db.Integer)
     description = db.Column(db.Text)
     admin_id = db.Column(db.String(10), db.ForeignKey('admin.id'))
+    classroom_id = db.Column(db.String(10), db.ForeignKey('classroom.id'))
     students = db.relationship('Student',
                                 secondary=association_table,
                                 back_populates='courses')
