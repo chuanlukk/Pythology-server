@@ -27,7 +27,7 @@ class Student(db.Model):
     gender = db.Column(db.String(1)) # M or F
     school = db.Column(db.Integer)
     major = db.Column(db.Integer)
-    enrollment_date = db.Column(db.Integer)
+    grade = db.Column(db.Integer)
     courses = db.relationship('Course',
                               secondary=association_table,
                               back_populates='students')
