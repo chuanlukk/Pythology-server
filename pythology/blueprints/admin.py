@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response, g
 from pythology.extensions import db
 from pythology.models import Student, Admin, Course, Classroom, association_table
+from sqlalchemy import and_, or_, func
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -124,7 +125,7 @@ def get_course():
     return jsonify(res)
 
 
-@admin_bp.route('/find', methods=['GET', 'POST'])
+@admin_bp.route('/index', methods=['GET', 'POST'])
 def index_course():
     data = request.get_json()
     print('receive data:', data)
@@ -140,8 +141,13 @@ def index_course():
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
+        # for course in res['courses']:
+        #     course['count'] = association_table.query.filter_by(course_id=course['id']).count()
         for course in res['courses']:
-            course['count'] = association_table.query.filter_by(course_id=course['id']).count()
+            count = db.session.query(func.count()).join(association_table).filter(
+                association_table.c.course_id == course['id']
+            ).scalar()
+            course['count'] = count
         res['msg'] = "查询课程成功"
     else:
         res['status'] = 0
