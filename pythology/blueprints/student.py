@@ -93,3 +93,45 @@ def get_courses():
 
     print('send res:', res)
     return jsonify(res)
+
+
+@student_bp.route('/index', methods=['GET', 'POST'])
+def index_course():
+    data = request.get_json()
+    print('receive data:', data)
+
+    res = {}
+    # 获取所有可选选课程
+    if data['type'] == 'all':
+        courses = Course.query.filter(or_(and_(Course.grade == data['grade'], Course.major == data['major']),
+                                          and_(Course.grade == 0, Course.major == 0))).all()
+    elif data['type'] == 'major':
+        courses = Course.query.filter(and_(Course.grade == data['grade'], Course.major == data['major'])).all()
+    elif data['type'] == 'public':
+        courses = Course.query.filter(and_(Course.grade == 0, Course.major == 0)).all()
+
+    if courses:
+        res['status'] = 1
+        res['courses'] = [course.to_dict() for course in courses]
+        # 课程状态
+        if data['status'] == 'selected':
+            res['courses'] = [course for course in res['courses'] if any(c.id == course['id'] for c in g.user.courses)]
+        elif data['status'] == 'unselected':
+            res['courses'] = [course for course in res['courses'] if not any(c.id == course['id'] for c in g.user.courses)]
+        # 时间冲突
+        if data['check_time']:
+            res['courses'] = [course for course in res['courses'] if not any(course['week'] == c.week and course['start'] <= c.end and course['end'] >= c.start for c in g.user.courses)]
+
+        # 标记已选课程
+        for course in res['courses']:
+            # course['selected'] = 1 if g.user.courses.filter_by(id=course['id']).first() else 0
+            course['selected'] = 1 if any(c.id == course['id'] for c in g.user.courses) else 0
+        # 标记时间冲突课程
+        for course in res['courses']:
+            course['time_conflict'] = 1 if any(
+                course['week'] == c.week and course['start'] <= c.end and course['end'] >= c.start for c in
+                g.user.courses) else 0
+        res['msg'] = "获取可选课程成功"
+
+    print('send res:', res)
+    return jsonify(res)
