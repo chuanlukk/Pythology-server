@@ -124,7 +124,7 @@ def get_course():
     return jsonify(res)
 
 
-@admin_bp.route('/index', methods=['GET', 'POST'])
+@admin_bp.route('/find', methods=['GET', 'POST'])
 def index_course():
     data = request.get_json()
     print('receive data:', data)
