@@ -14,7 +14,7 @@ from .blueprints.admin import admin_bp
 from .blueprints.student import student_bp
 from .config import config
 from .extensions import db
-from .models import Student, Admin, Course, association_table
+from .models import Student, Admin, Course, association_table, Classroom
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -107,7 +107,7 @@ def register_commands(app):
             admin.password_hash = password
         else:
             click.echo('Creating the temporary administrator account...')
-            admin = Admin(id = id, username='Admin', password_hash=password, school=1)
+            admin = Admin(id = id, username='谢坤', password_hash=password, school=1)
             db.session.add(admin)
         db.session.commit()
         click.echo('Done.')
@@ -125,7 +125,12 @@ def register_shell_context(app):
     # 将db对象集成到Python shell上下文中
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db, Student=Student, Admin=Admin, Course=Course, CourseStudent=CourseStudent)
+        return dict(db=db,
+                    Student=Student,
+                    Admin=Admin,
+                    Course=Course,
+                    association_table=association_table,
+                    Classroom=Classroom)
 
 
 # 为了让使用程序实例app注册的视图函数，错误处理函数，自定义命令函数等和程序实例关联起来
