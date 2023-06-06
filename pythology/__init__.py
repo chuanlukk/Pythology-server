@@ -100,7 +100,7 @@ def register_commands(app):
         click.echo('Initializing the database...')
         db.create_all()
 
-        admin = Admin.query.filter('username' == 'Admin').first()
+        admin = Admin.query.filter('username' == '谢坤').first()
         if admin is not None:
             click.echo('The administrator already exists, updating...')
             admin.id = id
