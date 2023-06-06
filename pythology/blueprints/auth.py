@@ -69,6 +69,7 @@ def login():
             res['status'] = 1
             if not data['admin']:
                 res['major'] = user.major
+                res['grade'] = user.grade
         else:
             res['msg'] = "学工号或密码错误"
             res['status'] = 0
