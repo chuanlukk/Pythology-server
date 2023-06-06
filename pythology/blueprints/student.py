@@ -35,9 +35,9 @@ def add_course():
             else: # 选课成功
                 g.user.courses.append(course)
                 db.session.commit()
-                res['courses'] = [c.to_dict() for c in g.user.courses]
                 res['msg'] = "选课成功"
                 res['status'] = 1
+
     else: # 课程不存在
         res['msg'] = "课程不存在，请检查该课程id"
         res['status'] = 0
