@@ -7,7 +7,7 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.before_request
 def before_request():
     g.user_id = request.args.get('id')
-    # g.user = Admin.query.get(g.user_id)
+    g.user = Admin.query.get(g.user_id)
 
 
 @admin_bp.route('/create', methods=['GET', 'POST'])
@@ -19,14 +19,14 @@ def create_course():
     # existing_course = Course.query.get(data['course_id'])
     # 判断与已有课程是否时间冲突
     time_conflict = Course.query.filter_by(week=data['week'], admin_id=g.user_id).filter(
-        Course.start < data['end'], Course.end > data['start']).first()
+        Course.start <= data['end'], Course.end >= data['start']).first()
     if time_conflict:
         res['msg'] = "与已有课程时间冲突"
         res['status'] = 0
     else:
         # 判断教室是否时间冲突
         classroom_time_conflict = Course.query.filter_by(week=data['week'], classroom_id=data['classroom']).filter(
-            Course.start < data['end'], Course.end > data['start']).first()
+            Course.start <= data['end'], Course.end >= data['start']).first()
         if classroom_time_conflict:
             res['msg'] = "教室时间冲突"
             res['status'] = 0
@@ -68,6 +68,8 @@ def create_course():
             )
             db.session.add(new_course)
             db.session.commit()
+            # 返回新的课程列表
+            res['courses'] = [course.to_dict() for course in g.user.courses]
             res['msg'] = "课程创建成功"
             res['status'] = 1
 
@@ -87,6 +89,7 @@ def delete_course():
         # 删除课程，自动解除关系
         db.session.delete(existing_course)
         db.session.commit()
+        res['courses'] = [course.to_dict() for course in g.user.courses]
         res['msg'] = "删除成功"
         res['status'] = 1
     else:

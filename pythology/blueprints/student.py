@@ -28,13 +28,14 @@ def add_course():
             res['status'] = 0
         else:
             # 判断是否与已选课程产生时间冲突
-            time_conflict = any(c.week == course.week and c.start < course.end and c.end > course.start for c in g.user.courses)
+            time_conflict = any(c.week == course.week and c.start <= course.end and c.end >= course.start for c in g.user.courses)
             if time_conflict:
                 res['msg'] = "与已选课程产生时间冲突"
                 res['status'] = 0
             else: # 选课成功
                 g.user.courses.append(course)
                 db.session.commit()
+                res['courses'] = [c.to_dict() for c in g.user.courses]
                 res['msg'] = "选课成功"
                 res['status'] = 1
     else: # 课程不存在
@@ -56,6 +57,7 @@ def remove_course():
     if course:
         g.user.courses.remove(course)
         db.session.commit()
+        res['courses'] = [c.to_dict() for c in g.user.courses]
         res['msg'] = "退课成功"
         res['status'] = 1
     else: # 课程不存在
@@ -83,7 +85,7 @@ def get_courses():
             course['selected'] = 1 if any(c.id == course['id'] for c in g.user.courses) else 0
         # 标记时间冲突课程
         for course in res['courses']:
-            course['time_conflict'] = 1 if any(course['week'] == c.week and course['start'] < c.end and course['end'] > c.start for c in g.user.courses) else 0
+            course['time_conflict'] = 1 if any(course['week'] == c.week and course['start'] <= c.end and course['end'] >= c.start for c in g.user.courses) else 0
         res['msg'] = "获取可选课程成功"
     else:
         res['status'] = 0
