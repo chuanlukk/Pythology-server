@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response, g
 from pythology.extensions import db
 from pythology.models import Student, Admin, Course, Classroom, association_table
-from sqlalchemy import and_, or_, func
+from sqlalchemy import func
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -131,6 +131,7 @@ def index_course():
     print('receive data:', data)
 
     res = {}
+    # 获取老师的所有课程
     courses = g.current_courses
     if data['only_major']: # 只显示专业课
         courses = [course for course in courses if course.major != 0]
@@ -141,12 +142,8 @@ def index_course():
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
-        # for course in res['courses']:
-        #     course['count'] = association_table.query.filter_by(course_id=course['id']).count()
-        # for course in res['courses']:
-        #     course['count'] = 0
-        # for student in g.current_course.students:
-        #     course['count'] += 1
+        for course in res['courses']:
+            course['count'] = len(Course.query.get(course['id']).students)
         res['msg'] = "查询课程成功"
     else:
         res['status'] = 0
@@ -165,44 +162,44 @@ def stat_course():
     labels = []
     sizes = []
     course = Course.query.get(data['course_id'])
-    if data['major']: # 有专业设置
-        if data['grade']: # 有年级设置
-            # 统计男女数量
-            labels = ['男', '女']
-            boy_count = 0
-            girl_count = 0
-            for student in course.students:
-                if student.gender == 'M':
-                    boy_count += 1
-                else:
-                    girl_count += 1
-            sizes.append(boy_count)
-            sizes.append(girl_count)
-        else: # 无年级设置
-            # 统计各年级数量
-            labels = ['大一', '大二', '大三', '大四']
-            sizes = [0, 0, 0, 0]
-            for student in course.students:
-                sizes[student.grade - 1] += 1
-    else: # 无专业设置
-        if data['grade']: # 有年级设置
-            # 统计各专业数量
-            labels = ['软件工程', '计算机科学与技术', '网络安全', '大数据',
-              '通信工程', '信息工程', '电子信息工程',
-              '经济学', '财政学', '金融学', '国际经济与贸易',
-              '法学', '英语', '新闻学', '历史']
-            sizes = [0 for i in range(15)]
-            for student in course.students:
-                sizes[student.major - 1] += 1
-        else: # 无年级设置
-            # 统计各学院数量
-            labels = ['计算机学院', '信息与通信学院', '经济管理学院', '人文学院']
-            sizes = [0 for i in range(4)]
-            for student in course.students:
-                sizes[student.school - 1] += 1
+    if course:
+        if data['major']:  # 有专业设置
+            if data['grade']:  # 有年级设置
+                # 统计男女数量
+                gender_list = [student.gender for student in course.students]
+                labels = ['男', '女']
+                sizes = [gender_list.count('M'), gender_list.count('F')]
+            else:  # 无年级设置
+                # 统计各年级数量
+                labels = ['大一', '大二', '大三', '大四']
+                grade_list = [student.grade for student in course.students]
+                sizes = [grade_list.count(1),
+                         grade_list.count(2),
+                         grade_list.count(3),
+                         grade_list.count(4)]
+        else:  # 无专业设置
+            if data['grade']:  # 有年级设置
+                # 统计各专业数量
+                labels = ['软件工程', '计算机科学与技术', '网络安全', '大数据',
+                          '通信工程', '信息工程', '电子信息工程',
+                          '经济学', '财政学', '金融学', '国际经济与贸易',
+                          '法学', '英语', '新闻学', '历史']
+                sizes = [0 for i in range(15)]
+                for student in course.students:
+                    sizes[student.major - 1] += 1
+            else:  # 无年级设置
+                # 统计各学院数量
+                labels = ['计算机学院', '信息与通信学院', '经济管理学院', '人文学院']
+                sizes = [0 for i in range(4)]
+                for student in course.students:
+                    sizes[student.school - 1] += 1
 
-    res['status'] = 1
-    res['labels'] = labels
-    res['sizes'] = sizes
-    res['msg'] = "统计成功"
+        res['status'] = 1
+        res['labels'] = labels
+        res['sizes'] = sizes
+        res['msg'] = "统计成功"
+    else:
+        res['status'] = 0
+        res['msg'] = "课程不存在，请检查课程id"
+
     return jsonify(res)
