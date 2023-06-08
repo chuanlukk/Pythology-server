@@ -146,7 +146,9 @@ def index_course():
             course['count'] = len(Course.query.get(course['id']).students)
         res['msg'] = "查询课程成功"
     else:
-        res['status'] = 0
+        # res['status'] = 0
+        res['status'] = 1
+        res['courses'] = []
         res['msg'] = "暂无此类课程"
 
     print('send res:', res)
