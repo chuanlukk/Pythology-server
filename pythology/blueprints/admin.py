@@ -139,6 +139,8 @@ def index_course():
         courses = [course for course in courses if course.grade == data['grade']]
     if data['major']:
         courses = [course for course in courses if course.major == data['major']]
+    if data['keyword'] != '':
+        courses = [course for course in courses if data['keyword'] in course.name]
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
