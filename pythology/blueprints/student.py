@@ -141,7 +141,8 @@ def find_course():
         courses = Course.query.filter(and_(Course.grade == 0, Course.major == 0)).all()
     # 搜索
     if not data['keyword'] == '':
-        courses = courses.query.filter(Course.name.like('%' + data['keyword'] + '%')).all()
+        courses = [course for course in courses if data['keyword'] in course.name]
+        # courses = courses.query.filter(Course.name.like('%' + data['keyword'] + '%')).all()
 
     if courses:
         res['courses'] = [course.to_dict() for course in courses]
