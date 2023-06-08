@@ -129,6 +129,7 @@ def find_course():
     print('receive data:', data)
 
     res = {}
+    courses = []
     # 获取所有可选选课程
     # 课程类型
     if data['type'] == 'all':
@@ -164,6 +165,9 @@ def find_course():
                 g.user.courses) else 0
         res['status'] = 1
         res['msg'] = "获取可选课程成功"
+    else:
+        res['status'] = 0
+        res['msg'] = "无可选课程"
 
     print('send res:', res)
     return jsonify(res)
