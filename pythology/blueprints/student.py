@@ -167,7 +167,9 @@ def find_course():
         res['status'] = 1
         res['msg'] = "获取可选课程成功"
     else:
-        res['status'] = 0
+        # res['status'] = 0
+        res['status'] = 1
+        res['courses'] = []
         res['msg'] = "无可选课程"
 
     print('send res:', res)
