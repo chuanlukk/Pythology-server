@@ -33,6 +33,10 @@ def add_course():
                 res['msg'] = "与已选课程产生时间冲突"
                 res['status'] = 0
             else: # 选课成功
+                g.user.courses.append(course)
+                db.session.commit()
+                res['msg'] = "选课成功"
+                res['status'] = 1
                 # 返回新课表
                 res['courses'] = [c.to_dict() for c in g.user.courses]
                 # 返回新可选课程状态表
@@ -48,10 +52,6 @@ def add_course():
                     c['time_conflict'] = 1 if any(
                         c['week'] == course.week and c['start'] <= course.end and c['end'] >= course.start for course in
                         g.user.courses) else 0
-                g.user.courses.append(course)
-                db.session.commit()
-                res['msg'] = "选课成功"
-                res['status'] = 1
     else: # 课程不存在
         res['msg'] = "课程不存在，请检查该课程id"
         res['status'] = 0
@@ -70,6 +70,10 @@ def remove_course():
     print('course:', course)
     if course:
         # res['courses'] = [c.to_dict() for c in g.user.courses]
+        g.user.courses.remove(course)
+        db.session.commit()
+        res['msg'] = "退课成功"
+        res['status'] = 1
         # 返回新课表
         res['courses'] = [c.to_dict() for c in g.user.courses]
         # 返回新可选课程状态表
@@ -84,10 +88,6 @@ def remove_course():
             c['time_conflict'] = 1 if any(
                 c['week'] == course.week and c['start'] <= course.end and c['end'] >= course.start for course in
                 g.user.courses) else 0
-        g.user.courses.remove(course)
-        db.session.commit()
-        res['msg'] = "退课成功"
-        res['status'] = 1
     else: # 课程不存在
         res['msg'] = "课程不存在，请检查该课程id"
         res['status'] = 0
