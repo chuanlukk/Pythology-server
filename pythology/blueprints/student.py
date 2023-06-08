@@ -37,8 +37,8 @@ def add_course():
                 db.session.commit()
                 res['msg'] = "选课成功"
                 res['status'] = 1
-                # # 返回新课表
-                # res['courses'] = [c.to_dict() for c in g.user.courses]
+                # 返回新课表
+                res['courses'] = [c.to_dict() for c in g.user.courses]
                 # # 返回新可选课程状态表
                 # related_courses = Course.query.filter(
                 #     or_(and_(Course.grade == data['grade'], Course.major == data['major']),
@@ -74,8 +74,8 @@ def remove_course():
         db.session.commit()
         res['msg'] = "退课成功"
         res['status'] = 1
-        # # 返回新课表
-        # res['courses'] = [c.to_dict() for c in g.user.courses]
+        # 返回新课表
+        res['courses'] = [c.to_dict() for c in g.user.courses]
         # # 返回新可选课程状态表
         # related_courses = Course.query.filter(or_(and_(Course.grade == data['grade'], Course.major == data['major']),
         #                                           and_(Course.grade == 0, Course.major == 0))).all()
@@ -124,7 +124,7 @@ def get_courses():
 
 
 @student_bp.route('/find', methods=['GET', 'POST'])
-def index_course():
+def find_course():
     data = request.get_json()
     print('receive data:', data)
 
