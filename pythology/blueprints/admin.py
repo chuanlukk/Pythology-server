@@ -21,15 +21,21 @@ def create_course():
     res = {}
     # existing_course = Course.query.get(data['course_id'])
     # 判断与已有课程是否时间冲突
-    time_conflict = Course.query.filter_by(week=data['week'], admin_id=g.user_id).filter(
-        Course.start <= data['end'], Course.end >= data['start']).first()
+    time_conflict = Course.query\
+        .filter_by(week=data['week'], admin_id=g.user_id)\
+        .filter(
+        Course.start <= data['end'], Course.end >= data['start'])\
+        .first()
     if time_conflict:
         res['msg'] = "与已有课程时间冲突"
         res['status'] = 0
     else:
         # 判断教室是否时间冲突
-        classroom_time_conflict = Course.query.filter_by(week=data['week'], classroom_id=data['classroom']).filter(
-            Course.start <= data['end'], Course.end >= data['start']).first()
+        classroom_time_conflict = Course.query\
+            .filter_by(week=data['week'], classroom_id=data['classroom'])\
+            .filter(
+            Course.start <= data['end'], Course.end >= data['start'])\
+            .first()
         if classroom_time_conflict:
             res['msg'] = "教室时间冲突"
             res['status'] = 0
@@ -198,6 +204,8 @@ def stat_course():
                 for student in course.students:
                     sizes[student.school - 1] += 1
 
+        labels = [label for label in labels if sizes[labels.index(label)] != 0]
+        sizes = [size for size in sizes if size != 0]
         res['status'] = 1
         res['labels'] = labels
         res['sizes'] = sizes
