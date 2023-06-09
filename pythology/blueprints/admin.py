@@ -92,13 +92,13 @@ def delete_course():
     print('receive data:', data)
 
     res = {}
-    existing_course = Course.query.get(data['course_id'])
+    existing_course = g.current_courses.query.get(data['course_id'])
     print('existing_course:', existing_course)
     if existing_course:
         # 删除课程，自动解除关系
         db.session.delete(existing_course)
         db.session.commit()
-        res['courses'] = g.cur_courses_list
+        res['courses'] = [course.to_dict() for course in g.user.courses]
         res['msg'] = "删除成功"
         res['status'] = 1
     else:
@@ -132,7 +132,7 @@ def get_course():
 
 
 @admin_bp.route('/find', methods=['GET', 'POST'])
-def index_course():
+def find_course():
     data = request.get_json()
     print('receive data:', data)
 
