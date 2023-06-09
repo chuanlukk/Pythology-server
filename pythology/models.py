@@ -67,5 +67,3 @@ class Course(db.Model):
             'classroom': self.classroom_id,
             # 添加其他属性
         }
-
-

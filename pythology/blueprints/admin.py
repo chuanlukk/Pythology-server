@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response, g
 from pythology.extensions import db
 from pythology.models import Student, Admin, Course, Classroom, association_table
-from sqlalchemy import and_, or_, func
+from sqlalchemy import func
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -9,7 +9,7 @@ admin_bp = Blueprint('admin', __name__)
 def before_request():
     g.user_id = request.args.get('id')
     g.user = Admin.query.get(g.user_id)
-    g.current_courses = Course.query.filter_by(admin_id=g.user_id).all()
+    # g.current_courses = Course.query.filter_by(admin_id=g.user_id).all()
 
 
 
@@ -21,15 +21,21 @@ def create_course():
     res = {}
     # existing_course = Course.query.get(data['course_id'])
     # 判断与已有课程是否时间冲突
-    time_conflict = Course.query.filter_by(week=data['week'], admin_id=g.user_id).filter(
-        Course.start <= data['end'], Course.end >= data['start']).first()
+    time_conflict = Course.query\
+        .filter_by(week=data['week'], admin_id=g.user_id)\
+        .filter(
+        Course.start <= data['end'], Course.end >= data['start'])\
+        .first()
     if time_conflict:
         res['msg'] = "与已有课程时间冲突"
         res['status'] = 0
     else:
         # 判断教室是否时间冲突
-        classroom_time_conflict = Course.query.filter_by(week=data['week'], classroom_id=data['classroom']).filter(
-            Course.start <= data['end'], Course.end >= data['start']).first()
+        classroom_time_conflict = Course.query\
+            .filter_by(week=data['week'], classroom_id=data['classroom'])\
+            .filter(
+            Course.start <= data['end'], Course.end >= data['start'])\
+            .first()
         if classroom_time_conflict:
             res['msg'] = "教室时间冲突"
             res['status'] = 0
@@ -92,7 +98,7 @@ def delete_course():
         # 删除课程，自动解除关系
         db.session.delete(existing_course)
         db.session.commit()
-        res['courses'] = g.cur_courses_list
+        res['courses'] = [course.to_dict() for course in g.user.courses]
         res['msg'] = "删除成功"
         res['status'] = 1
     else:
@@ -110,7 +116,7 @@ def get_course():
 
     res = {}
     # 获取已有课程
-    courses = Course.query.filter(Course.admin_id == g.user_id).all()
+    courses = g.user.courses
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
@@ -126,30 +132,31 @@ def get_course():
 
 
 @admin_bp.route('/find', methods=['GET', 'POST'])
-def index_course():
+def find_course():
     data = request.get_json()
     print('receive data:', data)
 
     res = {}
-    courses = g.current_courses
+    # 获取老师的所有课程
+    courses = g.user.courses
     if data['only_major']: # 只显示专业课
         courses = [course for course in courses if course.major != 0]
     if data['grade']:
         courses = [course for course in courses if course.grade == data['grade']]
     if data['major']:
         courses = [course for course in courses if course.major == data['major']]
+    if data['keyword'] != '':
+        courses = [course for course in courses if data['keyword'] in course.name]
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
-        # for course in res['courses']:
-        #     course['count'] = association_table.query.filter_by(course_id=course['id']).count()
-        # for course in res['courses']:
-        #     course['count'] = 0
-        # for student in g.current_course.students:
-        #     course['count'] += 1
+        for course in res['courses']:
+            course['count'] = len(Course.query.get(course['id']).students)
         res['msg'] = "查询课程成功"
     else:
-        res['status'] = 0
+        # res['status'] = 0
+        res['status'] = 1
+        res['courses'] = []
         res['msg'] = "暂无此类课程"
 
     print('send res:', res)
@@ -165,44 +172,50 @@ def stat_course():
     labels = []
     sizes = []
     course = Course.query.get(data['course_id'])
-    if data['major']: # 有专业设置
-        if data['grade']: # 有年级设置
-            # 统计男女数量
-            labels = ['男', '女']
-            boy_count = 0
-            girl_count = 0
-            for student in course.students:
-                if student.gender == 'M':
-                    boy_count += 1
-                else:
-                    girl_count += 1
-            sizes.append(boy_count)
-            sizes.append(girl_count)
-        else: # 无年级设置
-            # 统计各年级数量
-            labels = ['大一', '大二', '大三', '大四']
-            sizes = [0, 0, 0, 0]
-            for student in course.students:
-                sizes[student.grade - 1] += 1
-    else: # 无专业设置
-        if data['grade']: # 有年级设置
-            # 统计各专业数量
-            labels = ['软件工程', '计算机科学与技术', '网络安全', '大数据',
-              '通信工程', '信息工程', '电子信息工程',
-              '经济学', '财政学', '金融学', '国际经济与贸易',
-              '法学', '英语', '新闻学', '历史']
-            sizes = [0 for i in range(15)]
-            for student in course.students:
-                sizes[student.major - 1] += 1
-        else: # 无年级设置
-            # 统计各学院数量
-            labels = ['计算机学院', '信息与通信学院', '经济管理学院', '人文学院']
-            sizes = [0 for i in range(4)]
-            for student in course.students:
-                sizes[student.school - 1] += 1
+    students = course.students
+    if course:
+        if data['major']:  # 有专业设置
+            students = [student for student in students if student.major == data['major']]
+            if data['grade']:  # 有年级设置
+                students = [student for student in students if student.grade == data['grade']]
+                # 统计男女数量
+                gender_list = [student.gender for student in students]
+                labels = ['男', '女']
+                sizes = [gender_list.count('M'), gender_list.count('F')]
+            else:  # 无年级设置
+                # 统计各年级数量
+                labels = ['大一', '大二', '大三', '大四']
+                grade_list = [student.grade for student in students]
+                sizes = [grade_list.count(1),
+                         grade_list.count(2),
+                         grade_list.count(3),
+                         grade_list.count(4)]
+        else:  # 无专业设置
+            if data['grade']:  # 有年级设置
+                students = [student for student in students if student.grade == data['grade']]
+                # 统计各专业数量
+                labels = ['软件工程', '计算机科学与技术', '网络安全', '大数据',
+                          '通信工程', '信息工程', '电子信息工程',
+                          '经济学', '财政学', '金融学', '国际经济与贸易',
+                          '法学', '英语', '新闻学', '历史']
+                sizes = [0 for i in range(15)]
+                for student in students:
+                    sizes[student.major - 1] += 1
+            else:  # 无年级设置
+                # 统计各学院数量
+                labels = ['计算机学院', '信息与通信学院', '经济管理学院', '人文学院']
+                sizes = [0 for i in range(4)]
+                for student in students:
+                    sizes[student.school - 1] += 1
 
-    res['status'] = 1
-    res['labels'] = labels
-    res['sizes'] = sizes
-    res['msg'] = "统计成功"
+        labels = [label for label in labels if sizes[labels.index(label)] != 0]
+        sizes = [size for size in sizes if size != 0]
+        res['status'] = 1
+        res['labels'] = labels
+        res['sizes'] = sizes
+        res['msg'] = "统计成功"
+    else:
+        res['status'] = 0
+        res['msg'] = "课程不存在，请检查课程id"
+
     return jsonify(res)

@@ -37,7 +37,21 @@ def add_course():
                 db.session.commit()
                 res['msg'] = "选课成功"
                 res['status'] = 1
-
+                # 返回新课表
+                res['courses'] = [c.to_dict() for c in g.user.courses]
+                # # 返回新可选课程状态表
+                # related_courses = Course.query.filter(
+                #     or_(and_(Course.grade == data['grade'], Course.major == data['major']),
+                #         and_(Course.grade == 0, Course.major == 0))).all()
+                # res['related_courses'] = [c.to_dict() for c in related_courses]
+                # # 标记已选课程
+                # for c in res['related_courses']:
+                #     c['selected'] = 1 if any(c['id'] == course.id for course in g.user.courses) else 0
+                # # 标记时间冲突课程
+                # for c in res['related_courses']:
+                #     c['time_conflict'] = 1 if any(
+                #         c['week'] == course.week and c['start'] <= course.end and c['end'] >= course.start for course in
+                #         g.user.courses) else 0
     else: # 课程不存在
         res['msg'] = "课程不存在，请检查该课程id"
         res['status'] = 0
@@ -55,11 +69,25 @@ def remove_course():
     course = next((c for c in g.user.courses if c.id == data['course_id']), None)
     print('course:', course)
     if course:
+        # res['courses'] = [c.to_dict() for c in g.user.courses]
         g.user.courses.remove(course)
         db.session.commit()
-        res['courses'] = [c.to_dict() for c in g.user.courses]
         res['msg'] = "退课成功"
         res['status'] = 1
+        # 返回新课表
+        res['courses'] = [c.to_dict() for c in g.user.courses]
+        # # 返回新可选课程状态表
+        # related_courses = Course.query.filter(or_(and_(Course.grade == data['grade'], Course.major == data['major']),
+        #                                           and_(Course.grade == 0, Course.major == 0))).all()
+        # res['related_courses'] = [c.to_dict() for c in related_courses]
+        # # 标记已选课程
+        # for c in res['related_courses']:
+        #     c['selected'] = 1 if any(c['id'] == course.id for course in g.user.courses) else 0
+        # # 标记时间冲突课程
+        # for c in res['related_courses']:
+        #     c['time_conflict'] = 1 if any(
+        #         c['week'] == course.week and c['start'] <= course.end and c['end'] >= course.start for course in
+        #         g.user.courses) else 0
     else: # 课程不存在
         res['msg'] = "课程不存在，请检查该课程id"
         res['status'] = 0
@@ -95,13 +123,15 @@ def get_courses():
     return jsonify(res)
 
 
-@student_bp.route('/index', methods=['GET', 'POST'])
-def index_course():
+@student_bp.route('/find', methods=['GET', 'POST'])
+def find_course():
     data = request.get_json()
     print('receive data:', data)
 
     res = {}
+    courses = []
     # 获取所有可选选课程
+    # 课程类型
     if data['type'] == 'all':
         courses = Course.query.filter(or_(and_(Course.grade == data['grade'], Course.major == data['major']),
                                           and_(Course.grade == 0, Course.major == 0))).all()
@@ -109,9 +139,12 @@ def index_course():
         courses = Course.query.filter(and_(Course.grade == data['grade'], Course.major == data['major'])).all()
     elif data['type'] == 'public':
         courses = Course.query.filter(and_(Course.grade == 0, Course.major == 0)).all()
+    # 搜索
+    if not data['keyword'] == '':
+        courses = [course for course in courses if data['keyword'] in course.name]
+        # courses = courses.query.filter(Course.name.like('%' + data['keyword'] + '%')).all()
 
     if courses:
-        res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
         # 课程状态
         if data['status'] == 'selected':
@@ -131,7 +164,13 @@ def index_course():
             course['time_conflict'] = 1 if any(
                 course['week'] == c.week and course['start'] <= c.end and course['end'] >= c.start for c in
                 g.user.courses) else 0
+        res['status'] = 1
         res['msg'] = "获取可选课程成功"
+    else:
+        # res['status'] = 0
+        res['status'] = 1
+        res['courses'] = []
+        res['msg'] = "无可选课程"
 
     print('send res:', res)
     return jsonify(res)
