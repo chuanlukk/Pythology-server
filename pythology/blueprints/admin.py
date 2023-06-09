@@ -9,7 +9,7 @@ admin_bp = Blueprint('admin', __name__)
 def before_request():
     g.user_id = request.args.get('id')
     g.user = Admin.query.get(g.user_id)
-    g.current_courses = Course.query.filter_by(admin_id=g.user_id).all()
+    # g.current_courses = Course.query.filter_by(admin_id=g.user_id).all()
 
 
 
@@ -92,7 +92,7 @@ def delete_course():
     print('receive data:', data)
 
     res = {}
-    existing_course = Course.query.filter_by(id=data['course_id'], admin_id=g.user_id).first()
+    existing_course = Course.query.get(data['course_id'])
     print('existing_course:', existing_course)
     if existing_course:
         # 删除课程，自动解除关系
@@ -116,7 +116,7 @@ def get_course():
 
     res = {}
     # 获取已有课程
-    courses = g.current_courses
+    courses = g.user.courses
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
@@ -138,7 +138,7 @@ def find_course():
 
     res = {}
     # 获取老师的所有课程
-    courses = g.current_courses
+    courses = g.user.courses
     if data['only_major']: # 只显示专业课
         courses = [course for course in courses if course.major != 0]
     if data['grade']:
