@@ -92,7 +92,7 @@ def delete_course():
     print('receive data:', data)
 
     res = {}
-    existing_course = g.current_courses.query.get(data['course_id'])
+    existing_course = Course.query.filter_by(id=data['course_id'], admin_id=g.user_id).first()
     print('existing_course:', existing_course)
     if existing_course:
         # 删除课程，自动解除关系
@@ -116,7 +116,7 @@ def get_course():
 
     res = {}
     # 获取已有课程
-    courses = Course.query.filter(Course.admin_id == g.user_id).all()
+    courses = g.current_courses
     if courses:
         res['status'] = 1
         res['courses'] = [course.to_dict() for course in courses]
